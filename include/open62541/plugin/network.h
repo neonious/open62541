@@ -110,6 +110,8 @@ struct UA_Connection {
     /* To be called only from within the server (and not the network layer).
      * Frees up the connection's memory. */
     void (*free)(UA_Connection *connection);
+
+	void *lowOPCUAData;
 };
 
 /* Cleans up half-received messages, and so on. Called from connection->free. */

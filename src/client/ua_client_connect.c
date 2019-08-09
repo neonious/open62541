@@ -921,7 +921,6 @@ UA_Client_connectSession(UA_Client *client) {
     
     /* A new session has been created. We need to clean up the subscriptions */
 #ifdef UA_ENABLE_SUBSCRIPTIONS
-    UA_Client_Subscriptions_clean(client);
     client->currentlyOutStandingPublishRequests = 0;
 #endif
 
@@ -1108,12 +1107,6 @@ UA_Client_disconnect(UA_Client *client) {
         /* UA_ClientConnectionTCP_init sets initial state to opening */
         if(client->connection.close != NULL)
             client->connection.close(&client->connection);
-
-#ifdef UA_ENABLE_SUBSCRIPTIONS
-    // TODO REMOVE WHEN UA_SESSION_RECOVERY IS READY
-    /* We need to clean up the subscriptions */
-    UA_Client_Subscriptions_clean(client);
-#endif
 
     UA_SecureChannel_deleteMembers(&client->channel);
 

@@ -105,6 +105,7 @@ typedef struct AsyncServiceCall {
     UA_DateTime start;
     UA_UInt32 timeout;
     void *responsedata;
+    unsigned char deleteData;
 } AsyncServiceCall;
 
 void UA_Client_AsyncService_cancel(UA_Client *client, AsyncServiceCall *ac,
@@ -153,14 +154,11 @@ struct UA_Client {
     /*When using highlevel functions these are the callbacks that can be accessed by the user*/
     LIST_HEAD(ListOfCustomCallback, CustomCallback) customCallbacks;
 
-    /* Work queue */
-    UA_WorkQueue workQueue;
-
     /* Subscriptions */
 #ifdef UA_ENABLE_SUBSCRIPTIONS
-    UA_UInt32 monitoredItemHandles;
+    UA_StatusCode (*publishNotificationCallback)(struct UA_Client *client, UA_ExtensionObject *msg, void *data);
+
     LIST_HEAD(, UA_Client_NotificationsAckNumber) pendingNotificationsAcks;
-    LIST_HEAD(, UA_Client_Subscription) subscriptions;
     UA_UInt16 currentlyOutStandingPublishRequests;
 #endif
 

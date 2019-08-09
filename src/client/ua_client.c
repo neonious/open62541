@@ -39,7 +39,6 @@ UA_Client_init(UA_Client* client) {
     client->connectStatus = UA_STATUSCODE_GOOD;
 
     UA_Timer_init(&client->timer);
-    UA_WorkQueue_init(&client->workQueue);
 }
 
 UA_Client *
@@ -88,16 +87,8 @@ UA_Client_deleteMembers(UA_Client *client) {
     /* Delete the async service calls */
     UA_Client_AsyncService_removeAll(client, UA_STATUSCODE_BADSHUTDOWN);
 
-    /* Delete the subscriptions */
-#ifdef UA_ENABLE_SUBSCRIPTIONS
-    UA_Client_Subscriptions_clean(client);
-#endif
-
     /* Delete the timed work */
     UA_Timer_deleteMembers(&client->timer);
-
-    /* Clean up the work queue */
-    UA_WorkQueue_cleanup(&client->workQueue);
 
     UA_ClientConfig_deleteMembers(&client->config);
 }
@@ -194,8 +185,10 @@ processAsyncResponse(UA_Client *client, UA_UInt32 requestId, const UA_NodeId *re
         return UA_STATUSCODE_BADREQUESTHEADERINVALID;
 
     /* Allocate the response */
-    UA_STACKARRAY(UA_Byte, responseBuf, ac->responseType->memSize);
-    void *response = (void*)(uintptr_t)&responseBuf[0]; /* workaround aliasing rules */
+    UA_STACKARRAY(UA_Byte, responseBuf, ac->deleteData ? ac->responseType->memSize : 0);
+    void *response = ac->deleteData ? (void*)(uintptr_t)&responseBuf[0] : malloc(ac->responseType->memSize); /* workaround aliasing rules */
+    if(!response)
+	return UA_STATUSCODE_BADOUTOFMEMORY;
 
     /* Verify the type of the response */
     const UA_DataType *responseType = ac->responseType;
@@ -236,7 +229,8 @@ processAsyncResponse(UA_Client *client, UA_UInt32 requestId, const UA_NodeId *re
     /* Call the callback */
     if(ac->callback)
         ac->callback(client, ac->userdata, requestId, response);
-    UA_deleteMembers(response, ac->responseType);
+    if(ac->deleteData)
+	UA_deleteMembers(response, ac->responseType);
 
     /* Remove the callback */
     LIST_REMOVE(ac, pointers);
@@ -479,7 +473,8 @@ __UA_Client_AsyncServiceEx(UA_Client *client, const void *request,
                            UA_ClientAsyncServiceCallback callback,
                            const UA_DataType *responseType,
                            void *userdata, UA_UInt32 *requestId,
-                           UA_UInt32 timeout) {
+                           UA_UInt32 timeout,
+			   unsigned char deleteData) {
     /* Prepare the entry for the linked list */
     AsyncServiceCall *ac = (AsyncServiceCall*)UA_malloc(sizeof(AsyncServiceCall));
     if(!ac)
@@ -488,6 +483,7 @@ __UA_Client_AsyncServiceEx(UA_Client *client, const void *request,
     ac->responseType = responseType;
     ac->userdata = userdata;
     ac->timeout = timeout;
+    ac->deleteData = deleteData;
 
     /* Call the service and set the requestId */
     UA_StatusCode retval = sendSymmetricServiceRequest(client, request, requestType, &ac->requestId);
@@ -513,7 +509,7 @@ __UA_Client_AsyncService(UA_Client *client, const void *request,
                          void *userdata, UA_UInt32 *requestId) {
     return __UA_Client_AsyncServiceEx(client, request, requestType, callback,
                                       responseType, userdata, requestId,
-                                      client->config.timeout);
+                                      client->config.timeout, 1);
 }
 
 

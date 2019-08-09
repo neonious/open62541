@@ -88,11 +88,6 @@ clientExecuteRepeatedCallback(UA_Client *client, UA_ApplicationCallback cb,
 UA_StatusCode UA_Client_run_iterate(UA_Client *client, UA_UInt16 timeout) {
 // TODO connectivity check & timeout features for the async implementation (timeout == 0)
     UA_StatusCode retval = UA_STATUSCODE_GOOD;
-#ifdef UA_ENABLE_SUBSCRIPTIONS
-    UA_StatusCode retvalPublish = UA_Client_Subscriptions_backgroundPublish(client);
-    if(client->state >= UA_CLIENTSTATE_SESSION && retvalPublish != UA_STATUSCODE_GOOD)
-        return retvalPublish;
-#endif
     /* Make sure we have an open channel */
 
     /************************************************************/
@@ -125,7 +120,7 @@ UA_StatusCode UA_Client_run_iterate(UA_Client *client, UA_UInt16 timeout) {
         /* Connection failed, drop the rest */
         if(retval != UA_STATUSCODE_GOOD)
             return retval;
-        if((cs == UA_CLIENTSTATE_SECURECHANNEL) || (cs == UA_CLIENTSTATE_SESSION)) {
+        if((cs == UA_CLIENTSTATE_SECURECHANNEL) || (cs == UA_CLIENTSTATE_SESSION) || (cs == UA_CLIENTSTATE_SESSION_DISCONNECTED)) {
             /* Check for new data */
             retval = receiveServiceResponseAsync(client, NULL, NULL);
         } else {
@@ -138,10 +133,12 @@ UA_StatusCode UA_Client_run_iterate(UA_Client *client, UA_UInt16 timeout) {
 #endif
         asyncServiceTimeoutCheck(client);
 
-#ifndef UA_ENABLE_MULTITHREADING
-        /* Process delayed callbacks when all callbacks and network events are
-         * done */
-        UA_WorkQueue_manuallyProcessDelayed(&client->workQueue);
+#ifdef UA_ENABLE_SUBSCRIPTIONS
+	// Do this at the end, so we definitly start new publishs when old publishs are done
+    UA_StatusCode retvalPublish = UA_Client_Subscriptions_backgroundPublish(client);
+    if(client->state >= UA_CLIENTSTATE_SESSION && retvalPublish != UA_STATUSCODE_GOOD)
+        return retvalPublish;
 #endif
+
     return retval;
 }

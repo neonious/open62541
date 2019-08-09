@@ -314,11 +314,6 @@ responseActivateSession(UA_Client *client, void *userdata, UA_UInt32 requestId,
     client->connection.state = UA_CONNECTION_ESTABLISHED;
     setClientState(client, UA_CLIENTSTATE_SESSION);
 
-#ifdef UA_ENABLE_SUBSCRIPTIONS
-    /* A new session has been created. We need to clean up the subscriptions */
-    UA_Client_Subscriptions_clean(client);
-#endif
-
      /* Call onConnect (client_async.c) callback */
     if(client->asyncConnectCall.callback)
         client->asyncConnectCall.callback(client, client->asyncConnectCall.userdata,
@@ -548,6 +543,9 @@ requestSession(UA_Client *client, UA_UInt32 *requestId) {
 
 UA_StatusCode
 UA_Client_connect_iterate(UA_Client *client) {
+    if(client->connection.state == UA_CONNECTION_OPENING)   // TR
+        return UA_STATUSCODE_GOOD;
+
     UA_LOG_TRACE(&client->config.logger, UA_LOGCATEGORY_CLIENT,
                  "Client connect iterate");
     if (client->connection.state == UA_CONNECTION_ESTABLISHED){
@@ -598,10 +596,12 @@ UA_Client_connect_async(UA_Client *client, const char *endpointUrl,
     client->endpointUrl = UA_STRING_ALLOC(endpointUrl);
 
     UA_StatusCode retval = UA_STATUSCODE_GOOD;
+    void *lowOPCUAData = client->connection.lowOPCUAData;
     client->connection =
         client->config.initConnectionFunc(client->config.localConnectionConfig,
                                           client->endpointUrl,
                                           client->config.timeout, &client->config.logger);
+    client->connection.lowOPCUAData = lowOPCUAData;
     if(client->connection.state != UA_CONNECTION_OPENING) {
         UA_LOG_TRACE(&client->config.logger, UA_LOGCATEGORY_CLIENT,
                      "Could not init async connection");
@@ -687,6 +687,7 @@ sendCloseSecureChannelAsync(UA_Client *client, void *userdata,
             &UA_TYPES[UA_TYPES_CLOSESECURECHANNELREQUEST]);
     UA_SecureChannel_close(&client->channel);
     UA_SecureChannel_deleteMembers(&client->channel);
+    setClientState(client, UA_CLIENTSTATE_DISCONNECTED);
 }
 
 static void
@@ -697,7 +698,6 @@ sendCloseSessionAsync(UA_Client *client, UA_UInt32 *requestId) {
     request.requestHeader.timestamp = UA_DateTime_now();
     request.requestHeader.timeoutHint = 10000;
     request.deleteSubscriptions = true;
-
     UA_Client_sendAsyncRequest(
             client, &request, &UA_TYPES[UA_TYPES_CLOSESESSIONREQUEST],
             (UA_ClientAsyncServiceCallback) sendCloseSecureChannelAsync,
@@ -715,17 +715,6 @@ UA_Client_disconnect_async(UA_Client *client, UA_UInt32 *requestId) {
 
     /* Close the TCP connection
      * shutdown and close (in tcp.c) are already async*/
-    if (client->state >= UA_CLIENTSTATE_CONNECTED)
-        client->connection.close(&client->connection);
-    else
-        UA_Client_removeRepeatedCallback(client, client->connection.connectCallbackID);
 
-#ifdef UA_ENABLE_SUBSCRIPTIONS
-// TODO REMOVE WHEN UA_SESSION_RECOVERY IS READY
-    /* We need to clean up the subscriptions */
-    UA_Client_Subscriptions_clean(client);
-#endif
-
-    setClientState(client, UA_CLIENTSTATE_DISCONNECTED);
     return UA_STATUSCODE_GOOD;
 }

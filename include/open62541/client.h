@@ -461,7 +461,7 @@ __UA_Client_AsyncServiceEx(UA_Client *client, const void *request,
                            UA_ClientAsyncServiceCallback callback,
                            const UA_DataType *responseType,
                            void *userdata, UA_UInt32 *requestId,
-                           UA_UInt32 timeout);
+                           UA_UInt32 timeout, unsigned char deleteData);
 
 /**
  * Timed Callbacks
