@@ -143,7 +143,7 @@ extern void * (*UA_globalRealloc)(void *ptr, size_t size);
     LOG; \
 }
 #define UA_LOG_SOCKET_ERRNO_GAI_WRAP(LOG) { \
-    const char *errno_str = gai_strerror(errno); \
+    const char *errno_str = "gai_strerror(errno)"; \
     LOG; \
 }
 

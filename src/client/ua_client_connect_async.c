@@ -632,6 +632,7 @@ UA_Client_connect_async(UA_Client *client, const char *endpointUrl,
     client->asyncConnectCall.userdata = userdata;
 
     if(!client->connection.connectCallbackID) {
+        client->config.pollConnectionFunc(client, &client->connection.connectCallbackID);
         UA_LOG_TRACE(&client->config.logger, UA_LOGCATEGORY_CLIENT,
                      "Adding async connection callback");
         retval = UA_Client_addRepeatedCallback(
