@@ -451,7 +451,7 @@ UA_Client_AsyncService_cancel(UA_Client *client, AsyncServiceCall *ac,
     UA_init(resp, ac->responseType);
     ((UA_ResponseHeader*)resp)->serviceResult = statusCode;
 
-    if(ac->callback)
+    if(ac->callback && ac->deleteData) /* our own callbacks dont need this call */
         ac->callback(client, ac->userdata, ac->requestId, resp);
 
     /* Clean up the response. Users might move data into it. For whatever reasons. */

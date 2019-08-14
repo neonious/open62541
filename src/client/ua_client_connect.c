@@ -1090,7 +1090,8 @@ UA_Client_disconnect(UA_Client *client) {
     /* Is a session established? */
     if(client->state >= UA_CLIENTSTATE_SESSION) {
         client->state = UA_CLIENTSTATE_SECURECHANNEL;
-        sendCloseSession(client);
+        // Done in disconnect_async, if disconnect is called, we do not want to be graceful
+//        sendCloseSession(client);
     }
     UA_NodeId_deleteMembers(&client->authenticationToken);
     client->requestHandle = 0;
@@ -1098,7 +1099,8 @@ UA_Client_disconnect(UA_Client *client) {
     /* Is a secure channel established? */
     if(client->state >= UA_CLIENTSTATE_SECURECHANNEL) {
         client->state = UA_CLIENTSTATE_CONNECTED;
-        sendCloseSecureChannel(client);
+        // Done in disconnect_async, if disconnect is called, we do not want to be graceful
+//        sendCloseSecureChannel(client);
     }
 
     /* Close the TCP connection */
@@ -1107,7 +1109,7 @@ UA_Client_disconnect(UA_Client *client) {
         /* UA_ClientConnectionTCP_init sets initial state to opening */
         if(client->connection.close != NULL)
             client->connection.close(&client->connection);
-
+ 
     UA_SecureChannel_deleteMembers(&client->channel);
 
     setClientState(client, UA_CLIENTSTATE_DISCONNECTED);
