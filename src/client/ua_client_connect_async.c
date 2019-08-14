@@ -582,7 +582,6 @@ UA_Client_connect_async(UA_Client *client, const char *endpointUrl,
                         void *userdata) {
     UA_LOG_TRACE(&client->config.logger, UA_LOGCATEGORY_CLIENT,
                  "Client internal async");
-
     if(client->state >= UA_CLIENTSTATE_WAITING_FOR_ACK)
         return UA_STATUSCODE_GOOD;
 
@@ -632,7 +631,7 @@ UA_Client_connect_async(UA_Client *client, const char *endpointUrl,
     client->asyncConnectCall.userdata = userdata;
 
     if(!client->connection.connectCallbackID) {
-        client->config.pollConnectionFunc(client, &client->connection.connectCallbackID);
+        client->config.pollConnectionFunc(client, &client->connection);
         UA_LOG_TRACE(&client->config.logger, UA_LOGCATEGORY_CLIENT,
                      "Adding async connection callback");
         retval = UA_Client_addRepeatedCallback(
