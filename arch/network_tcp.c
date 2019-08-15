@@ -60,11 +60,11 @@ connection_write(UA_Connection *connection, UA_ByteString *buf) {
     flags |= MSG_NOSIGNAL;
 
     /* Send the full buffer. This may require several calls to send */
-    int code = gLowOPCUASend(connection->lowOPCUAData, buf->data, buf->length);
+    int code = gLowOPCUASend(connection->lowOPCUAData, buf->data, (int)buf->length);
 
     /* Free the buffer */
     UA_ByteString_deleteMembers(buf);
-    return code;
+    return (UA_StatusCode)code;
 }
 
 static UA_StatusCode

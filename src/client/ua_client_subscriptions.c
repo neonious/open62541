@@ -62,16 +62,6 @@ UA_Client_preparePublishRequest(UA_Client *client, UA_PublishRequest *request) {
     return UA_STATUSCODE_GOOD;
 }
 
-/* According to OPC Unified Architecture, Part 4 5.13.1.1 i) */
-/* The value 0 is never used for the sequence number         */
-static UA_UInt32
-UA_Client_Subscriptions_nextSequenceNumber(UA_UInt32 sequenceNumber) {
-    UA_UInt32 nextSequenceNumber = sequenceNumber + 1;
-    if(nextSequenceNumber == 0)
-        nextSequenceNumber = 1;
-    return nextSequenceNumber;
-}
-
 void
 UA_Client_Subscriptions_processPublishResponse(UA_Client *client, UA_PublishRequest *request,
                                                UA_PublishResponse *response) {
