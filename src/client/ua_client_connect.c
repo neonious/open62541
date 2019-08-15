@@ -1053,38 +1053,6 @@ UA_Client_connect_username(UA_Client *client, const char *endpointUrl,
 /* Close the Connection */
 /************************/
 
-static void
-sendCloseSession(UA_Client *client) {
-    UA_CloseSessionRequest request;
-    UA_CloseSessionRequest_init(&request);
-
-    request.requestHeader.timestamp = UA_DateTime_now();
-    request.requestHeader.timeoutHint = 10000;
-    request.deleteSubscriptions = true;
-    UA_CloseSessionResponse response;
-    __UA_Client_Service(client, &request, &UA_TYPES[UA_TYPES_CLOSESESSIONREQUEST],
-                        &response, &UA_TYPES[UA_TYPES_CLOSESESSIONRESPONSE]);
-    UA_CloseSessionRequest_deleteMembers(&request);
-    UA_CloseSessionResponse_deleteMembers(&response);
-}
-
-static void
-sendCloseSecureChannel(UA_Client *client) {
-    UA_SecureChannel *channel = &client->channel;
-    UA_CloseSecureChannelRequest request;
-    UA_CloseSecureChannelRequest_init(&request);
-    request.requestHeader.requestHandle = ++client->requestHandle;
-    request.requestHeader.timestamp = UA_DateTime_now();
-    request.requestHeader.timeoutHint = 10000;
-    request.requestHeader.authenticationToken = client->authenticationToken;
-    UA_SecureChannel_sendSymmetricMessage(channel, ++client->requestId,
-                                          UA_MESSAGETYPE_CLO, &request,
-                                          &UA_TYPES[UA_TYPES_CLOSESECURECHANNELREQUEST]);
-    UA_CloseSecureChannelRequest_deleteMembers(&request);
-    UA_SecureChannel_close(&client->channel);
-    UA_SecureChannel_deleteMembers(&client->channel);
-}
-
 UA_StatusCode
 UA_Client_disconnect(UA_Client *client) {
     /* Is a session established? */
