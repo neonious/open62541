@@ -635,7 +635,8 @@ UA_Client_connect_async(UA_Client *client, const char *endpointUrl,
         UA_LOG_TRACE(&client->config.logger, UA_LOGCATEGORY_CLIENT,
                      "Adding async connection callback");
         retval = UA_Client_addRepeatedCallback(
-                     client, client->config.pollConnectionFunc, &client->connection, 100.0,
+                     client, (UA_ClientCallback)client->config.pollConnectionFunc, 
+&client->connection, 100.0,
                      &client->connection.connectCallbackID);
         if(retval != UA_STATUSCODE_GOOD)
             goto cleanup;
