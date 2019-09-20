@@ -640,7 +640,7 @@ UA_ClientConfig_setDefault(UA_ClientConfig *config) {
 
     config->connectionFunc = UA_ClientConnectionTCP;
     config->initConnectionFunc = UA_ClientConnectionTCP_init; /* for async client */
-    config->pollConnectionFunc = (void (*)(UA_Client *client, void *context))UA_ClientConnectionTCP_poll; /* for async connection */
+    config->pollConnectionFunc = UA_ClientConnectionTCP_poll; /* for async connection */
 
     config->customDataTypes = NULL;
     config->stateCallback = NULL;
