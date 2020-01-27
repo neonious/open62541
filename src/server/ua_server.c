@@ -280,11 +280,6 @@ UA_Server_new() {
 /* Timed Callbacks */
 /*******************/
 
-// GCC 8 / https://github.com/neonious/lowjs/issues/91
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunknown-warning-option"
-#pragma GCC diagnostic ignored "-Werror=cast-function-type"
-
 UA_StatusCode
 UA_Server_addTimedCallback(UA_Server *server, UA_ServerCallback callback,
                            void *data, UA_DateTime date, UA_UInt64 *callbackId) {
@@ -301,8 +296,6 @@ UA_Server_addRepeatedCallback(UA_Server *server, UA_ServerCallback callback,
                                         (UA_ApplicationCallback)callback,
                                         server, data, interval_ms, callbackId);
 }
-
-#pragma GCC diagnostic pop
 
 UA_StatusCode
 UA_Server_changeRepeatedCallbackInterval(UA_Server *server, UA_UInt64 callbackId,
