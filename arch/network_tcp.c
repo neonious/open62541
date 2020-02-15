@@ -659,12 +659,15 @@ UA_StatusCode UA_ClientConnectionTCP_poll(UA_Client *client, void *data) {
         fd_set fdset;
         FD_ZERO(&fdset);
         UA_fd_set(clientsockfd, &fdset);
+        fd_set fdset2;
+        FD_ZERO(&fdset2);
+        UA_fd_set(clientsockfd, &fdset2);
         UA_UInt32 timeout_usec = 0;
         struct timeval tmptv = { (long int) (timeout_usec / 1000000),
                         (int) (timeout_usec % 1000000) };
 
         int resultsize = UA_select((UA_Int32) (clientsockfd + 1), NULL, &fdset,
-        &fdset, &tmptv);
+        &fdset2, &tmptv);
 
 
  if (resultsize == 1) {

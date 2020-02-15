@@ -19,6 +19,7 @@
 
 #include "ua_util_internal.h"
 #include "open62541_queue.h"
+#include "open62541/server.h"
 
 #ifdef UA_ENABLE_MULTITHREADING
 #include <pthread.h>
@@ -27,7 +28,7 @@
 _UA_BEGIN_DECLS
 
 /* Callback where the application is either a client or a server */
-typedef UA_StatusCode (*UA_ApplicationCallback)(void *application, void *data);
+//typedef UA_StatusCode (*UA_ApplicationCallback)(void *application, void *data);
 
 /* Delayed callbacks are executed when all previously enqueue work is finished.
  * This is used to free memory that might used by a parallel worker or where the

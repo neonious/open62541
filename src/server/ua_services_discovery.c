@@ -559,8 +559,9 @@ struct PeriodicServerRegisterCallback {
  *
  * We will do so by using the additional data parameter which holds information
  * if the next interval is default or if it is a repeated call. */
-static void
-periodicServerRegister(UA_Server *server, void *data) {
+static UA_StatusCode
+periodicServerRegister(void *serverv, void *data) {
+	UA_Server *server = (UA_Server *)serverv;
     UA_assert(data != NULL);
 
     struct PeriodicServerRegisterCallback *cb = (struct PeriodicServerRegisterCallback *)data;
@@ -611,7 +612,7 @@ periodicServerRegister(UA_Server *server, void *data) {
 
         cb->this_interval = nextInterval;
         UA_Server_changeRepeatedCallbackInterval(server, cb->id, nextInterval);
-        return;
+        return UA_STATUSCODE_GOOD;
     }
 
     /* Registering succeeded */
@@ -625,6 +626,8 @@ periodicServerRegister(UA_Server *server, void *data) {
         if(retval == UA_STATUSCODE_GOOD)
             cb->registered = true;
     }
+
+	return UA_STATUSCODE_GOOD;
 }
 
 UA_StatusCode

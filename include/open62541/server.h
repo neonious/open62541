@@ -84,6 +84,7 @@ UA_Server_run_shutdown(UA_Server *server);
  * Timed Callbacks
  * --------------- */
 typedef void (*UA_ServerCallback)(UA_Server *server, void *data);
+typedef UA_StatusCode (*UA_ApplicationCallback)(void *application, void *data);
 
 /* Add a callback for execution at a specified time. If the indicated time lies
  * in the past, then the callback is executed at the next iteration of the
@@ -99,7 +100,7 @@ typedef void (*UA_ServerCallback)(UA_Server *server, void *data);
  * @return Upon success, UA_STATUSCODE_GOOD is returned. An error code
  *         otherwise. */
 UA_StatusCode UA_EXPORT
-UA_Server_addTimedCallback(UA_Server *server, UA_ServerCallback callback,
+UA_Server_addTimedCallback(UA_Server *server, UA_ApplicationCallback callback,
                            void *data, UA_DateTime date, UA_UInt64 *callbackId);
 
 /* Add a callback for cyclic repetition to the server.
@@ -116,7 +117,7 @@ UA_Server_addTimedCallback(UA_Server *server, UA_ServerCallback callback,
  * @return Upon success, UA_STATUSCODE_GOOD is returned. An error code
  *         otherwise. */
 UA_StatusCode UA_EXPORT
-UA_Server_addRepeatedCallback(UA_Server *server, UA_ServerCallback callback,
+UA_Server_addRepeatedCallback(UA_Server *server, UA_ApplicationCallback callback,
                               void *data, UA_Double interval_ms, UA_UInt64 *callbackId);
 
 UA_StatusCode UA_EXPORT

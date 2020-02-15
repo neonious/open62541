@@ -342,10 +342,13 @@ UA_Subscription_nextSequenceNumber(UA_UInt32 sequenceNumber) {
     return nextSequenceNumber;
 }
 
-static void
-publishCallback(UA_Server *server, UA_Subscription *sub) {
+static UA_StatusCode
+publishCallback(void *serverv, void *subv) {
+	UA_Server *server = (UA_Server *)serverv;
+	UA_Subscription *sub = (UA_Subscription *)subv;
     sub->readyNotifications = sub->notificationQueueSize;
     UA_Subscription_publish(server, sub);
+	return UA_STATUSCODE_GOOD;
 }
 
 void
@@ -563,7 +566,7 @@ Subscription_registerPublishCallback(UA_Server *server, UA_Subscription *sub) {
         return UA_STATUSCODE_GOOD;
 
     UA_StatusCode retval =
-        UA_Server_addRepeatedCallback(server, (UA_ServerCallback)publishCallback,
+        UA_Server_addRepeatedCallback(server, publishCallback,
                                       sub, (UA_UInt32)sub->publishingInterval, &sub->publishCallbackId);
     if(retval != UA_STATUSCODE_GOOD)
         return retval;

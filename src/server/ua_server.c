@@ -195,14 +195,16 @@ void UA_Server_delete(UA_Server *server) {
 }
 
 /* Recurring cleanup. Removing unused and timed-out channels and sessions */
-static void
-UA_Server_cleanup(UA_Server *server, void *_) {
+static UA_StatusCode
+UA_Server_cleanup(void *serverv, void *_) {
+	UA_Server *server = (UA_Server *)serverv;
     UA_DateTime nowMonotonic = UA_DateTime_nowMonotonic();
     UA_SessionManager_cleanupTimedOut(&server->sessionManager, nowMonotonic);
     UA_SecureChannelManager_cleanupTimedOut(&server->secureChannelManager, nowMonotonic);
 #ifdef UA_ENABLE_DISCOVERY
     UA_Discovery_cleanupTimedOut(server, nowMonotonic);
 #endif
+	return UA_STATUSCODE_GOOD;
 }
 
 /********************/
@@ -252,7 +254,7 @@ UA_Server_new() {
     UA_SessionManager_init(&server->sessionManager, server);
 
     /* Add a regular callback for cleanup and maintenance. With a 10s interval. */
-    UA_Server_addRepeatedCallback(server, (UA_ServerCallback)UA_Server_cleanup, NULL,
+    UA_Server_addRepeatedCallback(server, UA_Server_cleanup, NULL,
                                   10000.0, NULL);
 
     /* Initialize namespace 0*/
@@ -281,19 +283,19 @@ UA_Server_new() {
 /*******************/
 
 UA_StatusCode
-UA_Server_addTimedCallback(UA_Server *server, UA_ServerCallback callback,
+UA_Server_addTimedCallback(UA_Server *server, UA_ApplicationCallback callback,
                            void *data, UA_DateTime date, UA_UInt64 *callbackId) {
     return UA_Timer_addTimedCallback(&server->timer,
-                                     (UA_ApplicationCallback)callback,
+                                     callback,
                                      server, data, date, callbackId);
 }
 
 UA_StatusCode
-UA_Server_addRepeatedCallback(UA_Server *server, UA_ServerCallback callback,
+UA_Server_addRepeatedCallback(UA_Server *server, UA_ApplicationCallback callback,
                               void *data, UA_Double interval_ms,
                               UA_UInt64 *callbackId) {
     return UA_Timer_addRepeatedCallback(&server->timer,
-                                        (UA_ApplicationCallback)callback,
+                                        callback,
                                         server, data, interval_ms, callbackId);
 }
 

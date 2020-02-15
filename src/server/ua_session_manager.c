@@ -22,9 +22,12 @@ UA_SessionManager_init(UA_SessionManager *sm, UA_Server *server) {
 }
 
 /* Delayed callback to free the session memory */
-static void
-removeSessionCallback(UA_Server *server, session_list_entry *entry) {
+static UA_StatusCode
+removeSessionCallback(void *serverv, void *entryv) {
+	UA_Server *server = (UA_Server *)serverv;
+	session_list_entry *entry = (session_list_entry *)entryv;
     UA_Session_deleteMembersCleanup(&entry->session, server);
+	return UA_STATUSCODE_GOOD;
 }
 
 static void
@@ -56,7 +59,7 @@ removeSession(UA_SessionManager *sm, session_list_entry *sentry) {
 
     /* Add a delayed callback to remove the session when the currently
      * scheduled jobs have completed */
-    sentry->cleanupCallback.callback = (UA_ApplicationCallback)removeSessionCallback;
+    sentry->cleanupCallback.callback = removeSessionCallback;
     sentry->cleanupCallback.application = sm->server;
     sentry->cleanupCallback.data = sentry;
     UA_WorkQueue_enqueueDelayed(&sm->server->workQueue, &sentry->cleanupCallback);

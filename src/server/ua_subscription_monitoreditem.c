@@ -329,7 +329,7 @@ UA_MonitoredItem_registerSampleCallback(UA_Server *server, UA_MonitoredItem *mon
         return UA_STATUSCODE_GOOD;
 
     UA_StatusCode retval =
-        UA_Server_addRepeatedCallback(server, (UA_ServerCallback)UA_MonitoredItem_sampleCallback,
+        UA_Server_addRepeatedCallback(server, UA_MonitoredItem_sampleCallback,
                                       mon, mon->samplingInterval, &mon->sampleCallbackId);
     if(retval == UA_STATUSCODE_GOOD)
         mon->sampleCallbackIsRegistered = true;

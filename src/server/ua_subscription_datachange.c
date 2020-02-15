@@ -390,8 +390,10 @@ sampleCallbackWithValue(UA_Server *server, UA_Session *session,
     return UA_STATUSCODE_GOOD;
 }
 
-void
-UA_MonitoredItem_sampleCallback(UA_Server *server, UA_MonitoredItem *monitoredItem) {
+UA_StatusCode
+UA_MonitoredItem_sampleCallback(void *serverv, void *monitoredItemv) {
+	UA_Server *server = (UA_Server *)serverv;
+	UA_MonitoredItem *monitoredItem = (UA_MonitoredItem *)monitoredItemv;
     UA_Subscription *sub = monitoredItem->subscription;
     UA_Session *session = &server->adminSession;
     if(sub)
@@ -436,6 +438,8 @@ UA_MonitoredItem_sampleCallback(UA_Server *server, UA_MonitoredItem *monitoredIt
         UA_DataValue_deleteMembers(&value); /* Does nothing for UA_VARIANT_DATA_NODELETE */
     if(node)
         UA_Nodestore_releaseNode(server->nsCtx, node);
+
+    return UA_STATUSCODE_GOOD;
 }
 
 #endif /* UA_ENABLE_SUBSCRIPTIONS */
